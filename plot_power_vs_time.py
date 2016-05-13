@@ -10,7 +10,7 @@ import os
 # Parameters
 fname = '2016_05_06_test_1.txt'
 # my_cir_obj = cir.cir_power_class(N_up=8,adj_type='l',sig_type='c')
-my_cir_obj = cir.cir_power_class(N_up=8,adj_type='l')
+my_cir_obj = cir.cir_power_class(N_up=8,adj_type='pl')
 power_vec = []
 pdp_mat = []
 phase_mat = []

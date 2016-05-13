@@ -24,8 +24,8 @@ class cir_class:
         self.cur_signal_up = None # The upsampled complex-valued CIR
         self.first_path_tap_idx = None # the index of the first path
         
-        self.ref_cir = None # This is the reference CIR that we use for lag/phase adjusting
-        self.avg_cir = None # This is the filtered CIR reference we use for lag/phase adjusting
+        self.ref_complex_cir = None # This is the reference CIR that we use for lag/phase adjusting
+        self.avg_complex_cir = None # This is the filtered CIR reference we use for lag/phase adjusting
         self.num_taps = None # Number of CIR taps in raw signal
         self.up_sig_len = None # Length of upsampled signal
         self.is_first_obs = 1 # Flag that indicates if this is the first CIR
@@ -160,7 +160,7 @@ class cir_class:
             self.start_time = self.cur_time
             self.num_taps = self.cur_signal_raw.size
             self.up_sig_len = self.cur_signal_up.size
-            self.ref_cir = self.cur_signal_up.copy()
+            self.ref_complex_cir = self.cur_signal_up.copy()
             
             self.__init_mats()
             
@@ -172,9 +172,9 @@ class cir_class:
         
         # If this is the first observation
         if self.is_first_obs:
-            self.avg_cir = self.cur_signal_up
+            self.avg_complex_cir = self.cur_signal_up
         else:
-            self.avg_cir = alpha*self.cur_signal_up + (1-alpha)*self.avg_cir 
+            self.avg_complex_cir = alpha*self.cur_signal_up + (1-alpha)*self.avg_complex_cir 
         
             
     # This method adjusts for any lag in the upsampled signal
@@ -183,10 +183,10 @@ class cir_class:
          
         x = self.sig_mag(y)
          
-        corr_mag = np.correlate(x,self.sig_mag(self.avg_cir),mode='full')
+        corr_mag = np.correlate(x,self.sig_mag(self.avg_complex_cir),mode='full')
         max_mag_idx = np.argmax(corr_mag).flatten()[0]
          
-        corr_cpx = np.correlate(y,self.avg_cir,mode='full')
+        corr_cpx = np.correlate(y,self.avg_complex_cir,mode='full')
         max_cpx_idx = np.argmax(self.sig_mag(corr_cpx)).flatten()[0]
          
         lags = np.arange(self.up_sig_len*2-1)-(self.up_sig_len-1)
@@ -203,9 +203,9 @@ class cir_class:
         
         # Auto-correlate signal according to user settings 
         if self.filter_on:
-            cur_corr = np.correlate(y,self.avg_cir,mode='full')
+            cur_corr = np.correlate(y,self.avg_complex_cir,mode='full')
         else:
-            cur_corr = np.correlate(y,self.ref_cir,mode='full')
+            cur_corr = np.correlate(y,self.ref_complex_cir,mode='full')
         opt_lag = -self.lag_vec[np.argmax(self.sig_mag(cur_corr)).flatten()[0]]
         
         # Shift the signal to adjust for any lag
@@ -228,9 +228,9 @@ class cir_class:
         
         # Tile the reference signal
         if self.filter_on:
-            ref_tiled = np.tile(self.avg_cir,(self.phases_vec.size,1))
+            ref_tiled = np.tile(self.avg_complex_cir,(self.phases_vec.size,1))
         else:
-            ref_tiled = np.tile(self.ref_cir,(self.phases_vec.size,1))
+            ref_tiled = np.tile(self.ref_complex_cir,(self.phases_vec.size,1))
         
         # Multiply in phase in subtract out reference
         A = sig_tiled*self.phases_mat
@@ -265,9 +265,9 @@ class cir_class:
             
             # compute autocorrelation
             if self.filter_on:
-                cur_corr = np.correlate(y,self.avg_cir,mode='full')
+                cur_corr = np.correlate(y,self.avg_complex_cir,mode='full')
             else:
-                cur_corr = np.correlate(y,self.ref_cir,mode='full')
+                cur_corr = np.correlate(y,self.ref_complex_cir,mode='full')
             opt_lag = -self.lag_vec[np.argmax(self.sig_mag(cur_corr)).flatten()[0]]
             norm_list[pp,0] = opt_lag
             
@@ -283,9 +283,9 @@ class cir_class:
             
             # Compute the l2-norm
             if self.filter_on:
-                tmp = y - self.avg_cir
+                tmp = y - self.avg_complex_cir
             else:
-                tmp = y - self.ref_cir
+                tmp = y - self.ref_complex_cir
             
             # Save l2-norm to list
             norm_list[pp,1] = self.sig_mag(tmp).sum()

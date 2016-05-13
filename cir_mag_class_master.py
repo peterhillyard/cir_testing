@@ -256,12 +256,20 @@ class cir_class:
         else:
             cur_corr = np.correlate(y,self.ref_mag_cir,mode='full')
         opt_lag = -self.lag_vec[np.argmax(cur_corr).flatten()[0]]
+        
+        # Shift the signal to adjust for any lag
+        if opt_lag > 0:
+            lag_adjusted_sig = np.array(((0+1j*0)*np.ones(opt_lag)).tolist() + self.cur_signal_up[0:-opt_lag].tolist()) 
+        elif opt_lag < 0:
+            lag_adjusted_sig = np.array(self.cur_signal_up[-opt_lag:].tolist() + ((0+1j*0)*np.ones(-opt_lag)).tolist())
+        else:
+            lag_adjusted_sig = self.cur_signal_up.copy()
             
         #######
         # Phase
         #######
         # Tile the upsampled signal
-        sig_tiled = np.tile(self.cur_signal_up,(self.phases_vec.size,1))
+        sig_tiled = np.tile(lag_adjusted_sig,(self.phases_vec.size,1))
         
         # Tile the reference signal
         if self.filter_on:
@@ -281,14 +289,7 @@ class cir_class:
         # Get the index with the least l2-norm
         opt_phase_idx = np.argmin(cur_norms).flatten()[0]
         
-        # Shift the signal to adjust for any lag
-        if opt_lag > 0:
-            tmp = np.array(((0+1j*0)*np.ones(opt_lag)).tolist() + self.cur_signal_up[0:-opt_lag].tolist()) 
-        elif opt_lag < 0:
-            tmp = np.array(self.cur_signal_up[-opt_lag:].tolist() + ((0+1j*0)*np.ones(-opt_lag)).tolist())
-        else:
-            tmp = self.cur_signal_up.copy()
-        self.cur_signal_up = tmp*np.exp(1j*self.phases_vec[opt_phase_idx])
+        self.cur_signal_up = A[opt_phase_idx,:]
         
 #         y = self.cur_signal_up.copy()
 #         x = self.avg_complex_cir.copy()

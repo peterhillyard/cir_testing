@@ -10,17 +10,24 @@ import os
 # Parameters
 fname = '2016_05_06_test_1.txt'
 # my_cir_obj = cir.cir_power_class(N_up=8,adj_type='l',sig_type='c')
-my_cir_obj = cir.cir_power_class(N_up=8,adj_type='pl')
+my_cir_obj = cir.cir_power_class(N_up=8,adj_type='l')
 power_vec = []
 pdp_mat = []
 phase_mat = []
 time_vec = []
+
+fig, ax = plt.subplots()
 
 with open('data/cirs/' + fname,'r') as f:
     for line in f:
         
         if my_cir_obj.observe(line) == 0:
             continue
+        
+#         y = my_cir_obj.cur_signal_up.copy()
+#         ax.plot(np.real(y),np.imag(y))
+#         plt.show(block=False)
+#         plt.pause(0.5)
         
         power_vec.append(my_cir_obj.get_full_power())
         pdp_mat.append(my_cir_obj.get_cir_mag().tolist())

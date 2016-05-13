@@ -4,7 +4,7 @@
 import numpy as np
 from scipy import signal
 import sys
-# import matplotlib.pyplot as plt    
+import matplotlib.pyplot as plt    
 
 class cir_class:
     
@@ -64,7 +64,8 @@ class cir_class:
         self.adjust_signal()
         
         # Add signal to filter
-        self.filter_sig()
+        if self.filter_on:
+            self.filter_sig()
         
         # Return a 1 to report a successful processing
         return 1
@@ -170,6 +171,7 @@ class cir_class:
         alpha = 0.05
         
         sig_to_add = self.sig_mag(self.cur_signal_up)
+        #sig_to_add = self.cur_signal_up.copy()
         
         # If this is the first observation
         if self.is_first_obs:
@@ -213,16 +215,22 @@ class cir_class:
         A = sig_tiled*self.phases_mat
         
         # Subtract out reference matrix
-        C = A - ref_tiled
+        C = self.sig_mag(A) - ref_tiled
         
         # Compute l2-norm of each row
-        cur_norms = self.sig_mag(C).sum(axis=1)
+        cur_norms = (self.sig_mag(C)**2).sum(axis=1)
         
         # Get the index with the least l2-norm
         opt_phase_idx = np.argmin(cur_norms).flatten()[0]
         
         # Adjust upsampled signal
         self.cur_signal_up = A[opt_phase_idx,:]
+        
+#         y = self.cur_signal_up.copy()
+#         x = self.avg_cir.copy()
+#         plt.plot(np.real(y),np.imag(y),'r')
+#         plt.plot(np.real(x),np.imag(x),'b')
+#         plt.show()
     
     # This method adjusts for phase and lag in the upsampled signal
     def adjust_for_phase_and_lag(self):
@@ -232,7 +240,8 @@ class cir_class:
         # loop through each phase value
         for pp in range(self.phases_vec.size):
             # copy the current CIR
-            y = self.sig_mag(self.cur_signal_up)
+            y = self.sig_mag(self.cur_signal_up*np.exp(1j*self.phases_vec[pp]))
+#             y = self.sig_mag(self.cur_signal_up)
             
             # Auto-correlate signal according to user settings 
             if self.filter_on:
@@ -255,7 +264,7 @@ class cir_class:
                 tmp = y - self.ref_cir
             
             # Save l2-norm to list
-            norm_list[pp,1] = self.sig_mag(tmp).sum()
+            norm_list[pp,1] = (self.sig_mag(tmp)**2).sum()
         
         # Get the index of the smallest l2-norm
         min_idx = np.argmin(norm_list[:,1]).flatten()[0]
@@ -273,10 +282,16 @@ class cir_class:
         else:
             self.cur_signal_up = y.copy()
         
+#         y = self.cur_signal_up.copy()
+#         x = self.avg_cir.copy()
+#         plt.plot(np.real(y),np.imag(y),'r')
+#         plt.plot(np.real(x),np.imag(x),'b')
+#         plt.show()
+        
     # Initialize frequently used vectors and matrixes
     def __init_mats(self):
         # Get a phases vector and make a phasor matrix for phase adjustment
-        self.phases_vec = np.linspace(0,2*np.pi,endpoint=False,num=24)
+        self.phases_vec = np.linspace(0,2*np.pi,endpoint=False,num=96)
         self.phases_mat = np.tile(np.exp(1j*self.phases_vec),(self.up_sig_len,1)).T
         
         # Get a lag vector

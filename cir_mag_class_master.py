@@ -1,6 +1,7 @@
 # This class processes incoming CIR measurements. This class is responsible for
 # parsing a new line, saving the time, first path index, and the CIR. The user
-# can choose what kind of adjust is made to correct the signal
+# can choose what kind of adjustment is made to correct the signal. The signal
+# will have some lag and phase change that can be adjusted.
 import numpy as np
 from scipy import signal
 import sys

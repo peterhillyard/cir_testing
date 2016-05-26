@@ -83,27 +83,27 @@ plt.show(block=False)
 # plt.show(block=True)
  
 # Plot mag and phase in the same figure
-plt.figure()
-plt.subplot(2,1,1)
-plt.imshow(20*np.log10(pdp_mat),origin='upper',aspect='auto',interpolation='none',
+fig, axarr = plt.subplots(2,1,sharex=True,sharey=True)
+
+axarr[0].imshow(20*np.log10(pdp_mat),origin='upper',aspect='auto',interpolation='none',
            extent = (time_vec[0],time_vec[-1],y_max,0))
-cbar = plt.colorbar()
-cbar.set_label('dB')
+# cbar = plt.colorbar()
+# cbar.set_label('dB')
 if xings is not None:
-    plt.plot(xings,xing_y_val*np.ones(xings.size),'rx',ms=10,mew=10)
-plt.xlim(time_vec[0],time_vec[-1])
-plt.xlabel('Time (sec)')
-plt.ylabel('Time delay (ns)')
-plt.subplot(2,1,2)
-plt.imshow(np.unwrap(phase_mat,axis=1),origin='upper',aspect='auto',interpolation='none',
+    axarr[0].plot(xings,xing_y_val*np.ones(xings.size),'rx',ms=10,mew=10)
+axarr[0].set_xlim(time_vec[0],time_vec[-1])
+axarr[0].set_xlabel('Time (sec)')
+axarr[0].set_ylabel('Time delay (ns)')
+
+axarr[1].imshow(np.unwrap(phase_mat,axis=1),origin='upper',aspect='auto',interpolation='none',
            extent = (time_vec[0],time_vec[-1],y_max,0),clim=(-4, 4))
-plt.colorbar()
-cbar.set_label('Phase (rad)')
+# plt.colorbar()
+# cbar.set_label('Phase (rad)')
 if xings is not None:
-    plt.plot(xings,xing_y_val*np.ones(xings.size),'rx',ms=10,mew=10)
-plt.xlim(time_vec[0],time_vec[-1])
-plt.xlabel('Time (sec)')
-plt.ylabel('Time delay (ns)')
+    axarr[1].plot(xings,xing_y_val*np.ones(xings.size),'rx',ms=10,mew=10)
+axarr[1].set_xlim(time_vec[0],time_vec[-1])
+axarr[1].set_xlabel('Time (sec)')
+axarr[1].set_ylabel('Time delay (ns)')
 plt.show()
  
 # Plot power
